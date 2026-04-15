@@ -154,14 +154,32 @@ def stream_response(messages):
         client = InferenceClient(token=hftoken)
         
         response_text = ""
-        for chunk in client.chat.completions.create(
-            model="openai/gpt-oss-120b:groq",
-            messages=messages,
+        # Convert messages to a prompt format for the model
+        prompt = ""
+        for msg in messages:
+            role = msg["role"]
+            content = msg["content"]
+            if role == "user":
+                prompt += f"User: {content}\n"
+            else:
+                prompt += f"Assistant: {content}\n"
+        
+        prompt += "Assistant: "
+        
+        # Use text_generation for streaming
+        for chunk in client.text_generation(
+            prompt,
+            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             stream=True,
+            details=True,
+            parameters={
+                "temperature": st.session_state.get("temperature", 0.7),
+                "max_new_tokens": st.session_state.get("max_tokens", 512),
+            }
         ):
-            if chunk.choices[0].delta.content:
-                response_text += chunk.choices[0].delta.content
-                yield chunk.choices[0].delta.content
+            if hasattr(chunk, 'token') and chunk.token.text:
+                response_text += chunk.token.text
+                yield chunk.token.text
         
         return response_text
     except Exception as e:
