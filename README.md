@@ -53,7 +53,29 @@ A powerful, user-friendly chatbot web application powered by HuggingFace's GPT-O
 
 The app will open in your browser at `http://localhost:8501`
 
-## 🎯 Usage
+## � Streamlit Cloud Deployment
+
+To deploy on Streamlit Cloud:
+
+1. **Push your code to GitHub** (already done!)
+
+2. **Go to [Streamlit Cloud](https://share.streamlit.io/)** and sign in with GitHub
+
+3. **Create new app** and select this repository:
+   - Repository: `abdalhafez006/GPT_Oss-Chatbot`
+   - Branch: `main`
+   - Main file path: `app.py`
+
+4. **Add secrets** (important!):
+   - Click on "Advanced settings"
+   - Under "Secrets", add your HuggingFace token:
+   ```
+   HF_TOKEN = "your_huggingface_token_here"
+   ```
+
+5. **Deploy** - Your app will be live in seconds!
+
+## �🎯 Usage
 
 1. **Start a Conversation** - Type your message in the input box at the bottom
 2. **Adjust Settings** - Use the sidebar to:

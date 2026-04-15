@@ -8,11 +8,35 @@ from huggingface_hub import InferenceClient
 # Load environment variables from .env file
 load_dotenv()
 
-# Load hftoken from .env
-hftoken = os.getenv('HF_TOKEN')
+# Load hftoken from .env first, then check Streamlit secrets (for cloud deployment)
+def get_hf_token():
+    """Get HuggingFace token from .env or Streamlit secrets"""
+    token = os.getenv('HF_TOKEN')
+    if token:
+        return token
+    
+    # Try to get from Streamlit secrets (for cloud deployment)
+    try:
+        if "HF_TOKEN" in st.secrets:
+            return st.secrets["HF_TOKEN"]
+    except:
+        pass
+    
+    return None
+
+hftoken = get_hf_token()
 
 if hftoken is None:
-    raise ValueError("HF_TOKEN not found in .env file")
+    st.error("❌ HF_TOKEN not found! Please set your HuggingFace token.")
+    st.info("""
+    **Local Setup:** Create a `.env` file with:
+    ```
+    HF_TOKEN=your_token_here
+    ```
+    
+    **Streamlit Cloud:** Add to your app's secrets in the Streamlit Cloud dashboard.
+    """)
+    st.stop()
 
 # Translations dictionary
 TRANSLATIONS = {
@@ -126,9 +150,9 @@ def apply_theme():
 
 def stream_response(messages):
     """Stream response from the model"""
-    client = InferenceClient(api_key=hftoken)
-    
     try:
+        client = InferenceClient(api_key=hftoken)
+        
         response_text = ""
         for chunk in client.chat.completions.create(
             model="openai/gpt-oss-120b:groq",
@@ -141,7 +165,8 @@ def stream_response(messages):
         
         return response_text
     except Exception as e:
-        yield f"Error: {str(e)}"
+        error_msg = f"Error: {str(e)}"
+        yield error_msg
 
 def save_to_history():
     """Save entire conversation to history"""
