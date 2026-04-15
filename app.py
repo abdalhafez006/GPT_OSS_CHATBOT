@@ -43,7 +43,7 @@ if hftoken is None:
 TRANSLATIONS = {
     "en": {
         "title": "🤖 HuggingFace GPT-OSS Chatbot",
-        "subtitle": "Powered by GPT-OSS 120B (via Groq)",
+        "subtitle": "Powered by GPT-OSS 20B",
         "language": "Language",
         "english": "English",
         "arabic": "العربية",
@@ -54,7 +54,7 @@ TRANSLATIONS = {
         "placeholder": "Type your message here...",
         "send": "Send",
         "no_history": "No chat history yet",
-        "model": "Model: GPT-OSS 120B",
+        "model": "Model: GPT-OSS 20B",
         "copy": "Copy",
         "delete": "Delete",
         "settings": "⚙️ Settings",
@@ -64,7 +64,7 @@ TRANSLATIONS = {
     },
     "ar": {
         "title": "🤖 روبوت محادثة HuggingFace GPT-OSS",
-        "subtitle": "مدعوم بواسطة GPT-OSS 120B (عبر Groq)",
+        "subtitle": "مدعوم بواسطة GPT-OSS 20B",
         "language": "اللغة",
         "english": "English",
         "arabic": "العربية",
@@ -75,7 +75,7 @@ TRANSLATIONS = {
         "placeholder": "اكتب رسالتك هنا...",
         "send": "إرسال",
         "no_history": "لا يوجد سجل دردشة حتى الآن",
-        "model": "النموذج: GPT-OSS 120B",
+        "model": "النموذج: GPT-OSS 20B",
         "copy": "نسخ",
         "delete": "حذف",
         "settings": "⚙️ الإعدادات",
@@ -85,7 +85,7 @@ TRANSLATIONS = {
     },
     "de": {
         "title": "🤖 HuggingFace GPT-OSS-Chatbot",
-        "subtitle": "Unterstützt von GPT-OSS 120B (über Groq)",
+        "subtitle": "Unterstützt von GPT-OSS 20B",
         "language": "Sprache",
         "english": "English",
         "arabic": "العربية",
@@ -96,7 +96,7 @@ TRANSLATIONS = {
         "placeholder": "Geben Sie Ihre Nachricht hier ein...",
         "send": "Senden",
         "no_history": "Noch kein Chatverlauf",
-        "model": "Modell: GPT-OSS 120B",
+        "model": "Modell: GPT-OSS 20B",
         "copy": "Kopieren",
         "delete": "Löschen",
         "settings": "⚙️ Einstellungen",
@@ -154,8 +154,8 @@ def stream_response(messages):
     try:
         headers = {"Authorization": f"Bearer {hftoken}"}
         
-        # Use HuggingFace conversational API endpoint
-        api_url = "https://api-inference.huggingface.co/models/openai/gpt-oss-120b"
+        # Use HuggingFace conversational API endpoint with GPT-OSS 20B
+        api_url = "https://api-inference.huggingface.co/models/openai/gpt-oss-20b"
         
         payload = {
             "inputs": {

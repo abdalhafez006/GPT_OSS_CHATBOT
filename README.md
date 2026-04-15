@@ -1,6 +1,6 @@
 # 🤖 HuggingFace GPT-OSS Chatbot
 
-A powerful, user-friendly chatbot web application powered by HuggingFace's GPT-OSS 120B model via Groq infrastructure with streaming responses.
+A powerful, user-friendly chatbot web application powered by HuggingFace's GPT-OSS 20B model with streaming responses.
 
 ## ✨ Features
 
