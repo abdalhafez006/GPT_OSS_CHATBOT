@@ -1,6 +1,6 @@
 # 🤖 HuggingFace Chatbot
 
-A powerful, user-friendly chatbot web application powered by HuggingFace's Mixtral 8x7B model with streaming responses.
+A powerful, user-friendly chatbot web application powered by HuggingFace's Mistral 7B model with streaming responses.
 
 ## ✨ Features
 

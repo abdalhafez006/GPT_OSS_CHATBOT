@@ -41,8 +41,8 @@ if hftoken is None:
 # Translations dictionary
 TRANSLATIONS = {
     "en": {
-        "title": "🤖 HuggingFace GPT-OSS Chatbot",
-        "subtitle": "Powered by GPT-OSS 120B",
+        "title": "🤖 HuggingFace Chatbot",
+        "subtitle": "Powered by Mistral 7B",
         "language": "Language",
         "english": "English",
         "arabic": "العربية",
@@ -53,7 +53,7 @@ TRANSLATIONS = {
         "placeholder": "Type your message here...",
         "send": "Send",
         "no_history": "No chat history yet",
-        "model": "Model: GPT-OSS 120B",
+        "model": "Model: Mistral 7B",
         "copy": "Copy",
         "delete": "Delete",
         "settings": "⚙️ Settings",
@@ -62,8 +62,8 @@ TRANSLATIONS = {
         "max_tokens": "Max Tokens",
     },
     "ar": {
-        "title": "🤖 روبوت محادثة HuggingFace GPT-OSS",
-        "subtitle": "مدعوم بواسطة GPT-OSS 120B",
+        "title": "🤖 روبوت محادثة HuggingFace",
+        "subtitle": "مدعوم بواسطة Mistral 7B",
         "language": "اللغة",
         "english": "English",
         "arabic": "العربية",
@@ -74,7 +74,7 @@ TRANSLATIONS = {
         "placeholder": "اكتب رسالتك هنا...",
         "send": "إرسال",
         "no_history": "لا يوجد سجل دردشة حتى الآن",
-        "model": "النموذج: GPT-OSS 120B",
+        "model": "النموذج: Mistral 7B",
         "copy": "نسخ",
         "delete": "حذف",
         "settings": "⚙️ الإعدادات",
@@ -83,8 +83,8 @@ TRANSLATIONS = {
         "max_tokens": "الحد الأقصى للرموز",
     },
     "de": {
-        "title": "🤖 HuggingFace GPT-OSS-Chatbot",
-        "subtitle": "Unterstützt von GPT-OSS 120B",
+        "title": "🤖 HuggingFace-Chatbot",
+        "subtitle": "Unterstützt von Mistral 7B",
         "language": "Sprache",
         "english": "English",
         "arabic": "العربية",
@@ -95,7 +95,7 @@ TRANSLATIONS = {
         "placeholder": "Geben Sie Ihre Nachricht hier ein...",
         "send": "Senden",
         "no_history": "Noch kein Chatverlauf",
-        "model": "Modell: GPT-OSS 120B",
+        "model": "Modell: Mistral 7B",
         "copy": "Kopieren",
         "delete": "Löschen",
         "settings": "⚙️ Einstellungen",
@@ -169,7 +169,7 @@ def stream_response(messages):
         # Use text_generation for streaming
         for chunk in client.text_generation(
             prompt,
-            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+            model="mistralai/Mistral-7B-Instruct-v0.1",
             stream=True,
             details=True,
             temperature=st.session_state.get("temperature", 0.7),
