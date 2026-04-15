@@ -172,10 +172,8 @@ def stream_response(messages):
             model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             stream=True,
             details=True,
-            parameters={
-                "temperature": st.session_state.get("temperature", 0.7),
-                "max_new_tokens": st.session_state.get("max_tokens", 512),
-            }
+            temperature=st.session_state.get("temperature", 0.7),
+            max_new_tokens=st.session_state.get("max_tokens", 512),
         ):
             if hasattr(chunk, 'token') and chunk.token.text:
                 response_text += chunk.token.text
