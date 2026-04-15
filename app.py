@@ -1,5 +1,6 @@
 import os
 import json
+import requests
 from datetime import datetime
 from dotenv import load_dotenv
 import streamlit as st
@@ -149,35 +150,34 @@ def apply_theme():
     """, unsafe_allow_html=True)
 
 def stream_response(messages):
-    """Stream response from the model"""
+    """Stream response from the model using conversational endpoint"""
     try:
-        client = InferenceClient(token=hftoken)
+        headers = {"Authorization": f"Bearer {hftoken}"}
+        
+        # Use HuggingFace conversational API endpoint
+        api_url = "https://api-inference.huggingface.co/models/openai/gpt-oss-120b"
+        
+        payload = {
+            "inputs": {
+                "past_user_inputs": [msg["content"] for msg in messages[:-1] if msg["role"] == "user"],
+                "generated_responses": [msg["content"] for msg in messages[:-1] if msg["role"] == "assistant"],
+                "text": messages[-1]["content"] if messages[-1]["role"] == "user" else ""
+            }
+        }
         
         response_text = ""
-        # Convert messages to a prompt format for the model
-        prompt = ""
-        for msg in messages:
-            role = msg["role"]
-            content = msg["content"]
-            if role == "user":
-                prompt += f"User: {content}\n"
-            else:
-                prompt += f"Assistant: {content}\n"
         
-        prompt += "Assistant: "
+        # Make request to conversational endpoint
+        response = requests.post(api_url, headers=headers, json=payload, stream=True)
+        response.raise_for_status()
         
-        # Use text_generation for streaming
-        for chunk in client.text_generation(
-            prompt,
-            model="openai/gpt-oss-120b",
-            stream=True,
-            details=True,
-            temperature=st.session_state.get("temperature", 0.7),
-            max_new_tokens=st.session_state.get("max_tokens", 512),
-        ):
-            if hasattr(chunk, 'token') and chunk.token.text:
-                response_text += chunk.token.text
-                yield chunk.token.text
+        for line in response.iter_lines():
+            if line:
+                data = json.loads(line)
+                if "generated_text" in data:
+                    chunk = data["generated_text"]
+                    response_text += chunk
+                    yield chunk
         
         return response_text
     except Exception as e:
