@@ -169,7 +169,7 @@ def stream_response(messages):
         # Use text_generation for streaming
         for chunk in client.text_generation(
             prompt,
-            model="openai/gpt-oss-120b:groq",
+            model="openai/gpt-oss-120b",
             stream=True,
             details=True,
             temperature=st.session_state.get("temperature", 0.7),
