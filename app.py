@@ -151,7 +151,7 @@ def apply_theme():
 def stream_response(messages):
     """Stream response from the model"""
     try:
-        client = InferenceClient(api_key=hftoken)
+        client = InferenceClient(token=hftoken)
         
         response_text = ""
         for chunk in client.chat.completions.create(
