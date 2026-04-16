@@ -1,169 +1,184 @@
-# 🤖 HuggingFace GPT-OSS Chatbot
+# 🤖 HF GPT-OSS Chatbot
 
-A powerful, user-friendly chatbot web application powered by HuggingFace's GPT-OSS 20B model with streaming responses.
+A modern, multi-language chatbot powered by Hugging Face's GPT-OSS-120B model through Groq. Built with Streamlit for a sleek, user-friendly interface.
 
 ## ✨ Features
 
-- **⚡ Real-time Streaming** - Get responses streamed instantly as they're generated
-- **💬 Conversation History** - Automatically save and restore complete conversations
-- **🌍 Multi-language Support** - Available in English, Arabic (العربية), and German (Deutsch)
-- **🎨 Dark Mode UI** - Sleek dark interface with Streamlit
-- **⚙️ Advanced Controls** - Adjust temperature and max tokens for response control
-- **📱 Responsive Design** - Works seamlessly on desktop and tablet devices
-- **🔒 Secure API** - Token management via environment variables
+- **🌐 Multi-Language Support**: English, Arabic (العربية), and German (Deutsch)
+- **⚡ Real-time Streaming**: Experience smooth, streaming responses from the AI model
+- **💬 Conversation History**: Organize multiple conversations with auto-generated keyword titles
+- **🎯 Smart Chat Naming**: Conversations are automatically named based on the first user message
+- **🗑️ Conversation Management**: 
+  - Create new conversations
+  - Delete individual conversations
+  - Clear all history at once
+- **📱 Responsive Design**: Clean, professional interface that works on all screen sizes
+- **🔐 Secure Token Management**: HF_TOKEN loaded from `.env` file
 
-## 🚀 Getting Started
+## 📋 Requirements
 
-### Prerequisites
+- Python 3.8+
+- pip or conda
 
-- Python 3.9+
-- HuggingFace API token (get from [huggingface.co](https://huggingface.co))
-- Git
+## 🚀 Installation
 
-### Installation
+### 1. Clone the Repository
+```bash
+git clone https://github.com/abdalhafez006/GPT_OSS_CHATBOT.git
+cd "HF-GptOss-Assistent chatbot"
+```
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/abdalhafez006/GPT_Oss-Chatbot.git
-   cd GPT_Oss-Chatbot
-   ```
+### 2. Create Virtual Environment
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate  # On Windows
+source .venv/bin/activate  # On macOS/Linux
+```
 
-2. **Create and activate virtual environment:**
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate  # Windows
-   source .venv/bin/activate  # macOS/Linux
-   ```
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 4. Set Up Environment Variables
+Create a `.env` file in the project root:
+```
+HF_TOKEN=your_huggingface_token_here
+```
 
-4. **Set up environment variables:**
-   Create a `.env` file in the root directory:
-   ```
-   HF_TOKEN=your_huggingface_token_here
-   ```
+Get your token from: https://huggingface.co/settings/tokens
 
-5. **Run the application:**
-   ```bash
-   streamlit run app.py
-   ```
+## 📖 Usage
+
+### Streamlit Web Interface
+```bash
+streamlit run streamlit_app.py
+```
 
 The app will open in your browser at `http://localhost:8501`
 
-## � Streamlit Cloud Deployment
-
-To deploy on Streamlit Cloud:
-
-1. **Push your code to GitHub** (already done!)
-
-2. **Go to [Streamlit Cloud](https://share.streamlit.io/)** and sign in with GitHub
-
-3. **Create new app** and select this repository:
-   - Repository: `abdalhafez006/GPT_Oss-Chatbot`
-   - Branch: `main`
-   - Main file path: `app.py`
-
-4. **Add secrets** (important!):
-   - Click on "Advanced settings"
-   - Under "Secrets", add your HuggingFace token:
-   ```
-   HF_TOKEN = "your_huggingface_token_here"
-   ```
-
-5. **Deploy** - Your app will be live in seconds!
-
-## �🎯 Usage
-
-1. **Start a Conversation** - Type your message in the input box at the bottom
-2. **Adjust Settings** - Use the sidebar to:
-   - Switch languages (English/Arabic/German)
-   - Control response creativity (Temperature slider)
-   - Set maximum response length (Max Tokens)
-3. **View History** - See your previous conversations in the sidebar
-4. **Load Conversations** - Click "Load this chat" to restore any saved conversation
-5. **Start Fresh** - Click "New Chat" to begin a new conversation (current one is auto-saved)
-
-## 🔧 Configuration
-
-### Temperature
-- **Lower values (0.0-0.5)** - More focused, deterministic responses
-- **Medium values (0.5-1.0)** - Balanced responses
-- **Higher values (1.0-2.0)** - More creative, diverse responses
-
-### Max Tokens
-- Number of tokens in the generated response
-- Higher values = longer responses
-- Range: 1-2048
-
-## 📦 Dependencies
-
-- **streamlit** - Web UI framework
-- **python-dotenv** - Environment variable management
-- **huggingface-hub** - HuggingFace API client
-
-## 📁 Project Structure
-
-```
-GPT_Oss-Chatbot/
-├── app.py              # Main Streamlit application
-├── .env                # Environment variables (not in repo)
-├── .gitignore          # Git ignore file
-├── README.md           # This file
-└── requirements.txt    # Python dependencies
+### Terminal-Based CLI
+```bash
+python app.py
 ```
 
-## 🌐 Supported Languages
+Simple command-line chatbot for terminal users.
 
-- **English** - Full interface translation
-- **العربية (Arabic)** - Complete Arabic interface
-- **Deutsch (German)** - Complete German interface
+## 🎨 UI Features
 
-## 🔐 Security Notes
+### Sidebar
+- **Language Selector**: Switch between 3 languages instantly
+- **New Chat Button**: Start fresh conversations
+- **Chat History**: View all previous conversations with message counts
+- **Delete Button**: Remove individual conversations
+- **Clear All**: Delete entire conversation history
 
-- Never commit your `.env` file or API tokens
-- Keep your HuggingFace token private
-- The `.env` file is listed in `.gitignore` for security
+### Main Chat Area
+- Message display with user/bot distinction
+- Real-time streaming responses
+- Clean chat input interface
 
-## 💡 Tips & Tricks
+## 🗣️ Supported Languages
 
-- Use clear, specific prompts for better responses
-- Experiment with temperature to find your sweet spot
-- Load previous conversations to continue discussions
-- History is automatically saved when creating a new chat
+| Language | Code |
+|----------|------|
+| English | EN |
+| العربية (Arabic) | AR |
+| Deutsch (German) | DE |
+
+## 📦 Project Structure
+
+```
+HF-GptOss-Assistent chatbot/
+├── streamlit_app.py          # Main Streamlit web application
+├── app.py                    # CLI version
+├── .env                      # Environment variables (create this)
+├── requirements.txt          # Python dependencies
+└── README.md                 # This file
+```
+
+## 🔧 Technologies Used
+
+- **Streamlit**: Modern web framework for Python
+- **Hugging Face Hub**: Access to GPT-OSS model
+- **Python 3.10+**: Programming language
+- **Groq**: High-performance inference for GPT-OSS
+
+## 💡 How It Works
+
+1. **Authentication**: Your HF_TOKEN is loaded from `.env` file
+2. **Session Management**: Streamlit maintains conversation state
+3. **Smart Naming**: First user message is analyzed to create a keyword title
+4. **Streaming**: Model responses stream in real-time for better UX
+5. **Persistence**: Conversations persist during your session (stored in memory)
+
+## 🌟 Key Features Explained
+
+### Auto-Generated Titles
+When you start a new chat, the title is automatically generated from your first message:
+- Extracts meaningful keywords (skips common words)
+- Examples:
+  - "What is Python?" → `Python`
+  - "How to learn machine learning?" → `Learning`
+  - "Tell me about AI" → `About`
+
+### Conversation History
+- View all previous conversations in the sidebar
+- Each shows message count
+- One-click to switch between chats
+- Individual delete buttons for each conversation
+
+### Multi-Language Support
+- All UI text translates instantly
+- Conversation history titles work in any language
+- Full support for RTL languages (Arabic)
 
 ## 🐛 Troubleshooting
 
-### "HFTOKEN not found"
-- Ensure your `.env` file contains `HF_TOKEN=your_token`
-- Verify the file is in the project root directory
+### "HF_TOKEN not found in .env file"
+- Ensure `.env` file exists in the project root
+- Verify token is correctly added: `HF_TOKEN=hf_xxxxx...`
 
-### Application crashes
-- Check your internet connection
-- Verify your HuggingFace token is valid
-- Ensure all dependencies are installed: `pip install -r requirements.txt`
+### Streamlit not starting
+```bash
+pip install --upgrade streamlit
+```
 
 ### Slow responses
 - Check your internet connection
-- Verify Groq services are operational
-- Try reducing max tokens
+- Verify HF_TOKEN is valid
+- Groq API may have rate limits
 
-## 📝 License
+## 📝 Example Usage
+
+1. Launch the app: `streamlit run streamlit_app.py`
+2. Select your preferred language from the sidebar
+3. Type your first message (this becomes the chat title)
+4. Watch the AI response stream in real-time
+5. Continue the conversation or start a new chat
+6. Delete conversations individually or clear all history
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+- Report bugs
+- Suggest improvements
+- Add new features
+
+## 📄 License
 
 This project is open source and available under the MIT License.
 
-## 🙏 Acknowledgments
+## 🔗 Links
 
-- [HuggingFace](https://huggingface.co/) for the model and API
-- [Groq](https://groq.com/) for the inference infrastructure
-- [Streamlit](https://streamlit.io/) for the web framework
+- [Hugging Face Hub](https://huggingface.co/)
+- [Streamlit Documentation](https://docs.streamlit.io/)
+- [Groq](https://console.groq.com/)
 
-## 📧 Contact
+## 📧 Support
 
-For questions or suggestions, please open an issue on GitHub.
+For issues or questions, please create an issue on the GitHub repository.
 
 ---
 
-**Made with ❤️ by abdalhafez006**
+**Built with ❤️ using Streamlit and Hugging Face**

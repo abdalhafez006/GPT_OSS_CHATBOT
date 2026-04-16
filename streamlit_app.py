@@ -1,368 +1,253 @@
 import os
-import json
-import requests
+import streamlit as st
 from datetime import datetime
 from dotenv import load_dotenv
-import streamlit as st
 from huggingface_hub import InferenceClient
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Load hftoken from .env first, then check Streamlit secrets (for cloud deployment)
-def get_hf_token():
-    """Get HuggingFace token from .env or Streamlit secrets"""
-    token = os.getenv('HF_TOKEN')
-    if token:
-        return token
-    
-    # Try to get from Streamlit secrets (for cloud deployment)
-    try:
-        if "HF_TOKEN" in st.secrets:
-            return st.secrets["HF_TOKEN"]
-    except:
-        pass
-    
-    return None
+# Get HF_TOKEN from environment
+HF_TOKEN = os.getenv('HF_TOKEN')
 
-hftoken = get_hf_token()
+if not HF_TOKEN:
+    raise ValueError("HF_TOKEN not found in .env file")
 
-if hftoken is None:
-    st.error("❌ HF_TOKEN not found! Please set your HuggingFace token.")
-    st.info("""
-    **Local Setup:** Create a `.env` file with:
-    ```
-    HF_TOKEN=your_token_here
-    ```
-    
-    **Streamlit Cloud:** Add to your app's secrets in the Streamlit Cloud dashboard.
-    """)
-    st.stop()
+# Initialize the InferenceClient
+client = InferenceClient(api_key=HF_TOKEN)
 
-# Translations dictionary
+# Language translations
 TRANSLATIONS = {
-    "en": {
-        "title": "🤖 HuggingFace GPT-OSS Chatbot",
-        "subtitle": "Powered by GPT-OSS 20B",
+    "English": {
+        "title": "🤖 HF GPT-OSS Chatbot",
         "language": "Language",
-        "english": "English",
-        "arabic": "العربية",
-        "german": "Deutsch",
         "chat_history": "Chat History",
-        "new_chat": "New Chat",
-        "clear_history": "Clear History",
+        "new_chat": "➕ New Chat",
+        "delete": "🗑️ Delete",
+        "clear_history": "🗑️ Clear All History",
+        "no_history": "No conversations yet",
+        "error": "Error communicating with the model",
+        "welcome": "Welcome to the HF GPT-OSS Chatbot! Start a new conversation.",
         "placeholder": "Type your message here...",
-        "send": "Send",
-        "no_history": "No chat history yet",
-        "model": "Model: GPT-OSS 20B",
-        "copy": "Copy",
-        "delete": "Delete",
         "settings": "⚙️ Settings",
-        "about": "ℹ️ About",
-        "temperature": "Temperature",
-        "max_tokens": "Max Tokens",
+        "confirmation": "Are you sure?",
+        "conv_deleted": "Conversation deleted"
     },
-    "ar": {
-        "title": "🤖 روبوت محادثة HuggingFace GPT-OSS",
-        "subtitle": "مدعوم بواسطة GPT-OSS 20B",
+    "Arabic": {
+        "title": "🤖 روبوت HF GPT-OSS",
         "language": "اللغة",
-        "english": "English",
-        "arabic": "العربية",
-        "german": "Deutsch",
-        "chat_history": "سجل الدردشة",
-        "new_chat": "دردشة جديدة",
-        "clear_history": "مسح السجل",
+        "chat_history": "سجل المحادثات",
+        "new_chat": "➕ محادثة جديدة",
+        "delete": "🗑️ حذف",
+        "clear_history": "🗑️ حذف الكل",
+        "no_history": "لا توجد محادثات",
+        "error": "خطأ في التواصل مع النموذج",
+        "welcome": "مرحبا! ابدأ محادثة جديدة.",
         "placeholder": "اكتب رسالتك هنا...",
-        "send": "إرسال",
-        "no_history": "لا يوجد سجل دردشة حتى الآن",
-        "model": "النموذج: GPT-OSS 20B",
-        "copy": "نسخ",
-        "delete": "حذف",
         "settings": "⚙️ الإعدادات",
-        "about": "ℹ️ حول",
-        "temperature": "درجة الحرارة",
-        "max_tokens": "الحد الأقصى للرموز",
+        "confirmation": "هل أنت متأكد؟",
+        "conv_deleted": "تم حذف المحادثة"
     },
-    "de": {
-        "title": "🤖 HuggingFace GPT-OSS-Chatbot",
-        "subtitle": "Unterstützt von GPT-OSS 20B",
+    "Deutsch": {
+        "title": "🤖 HF GPT-OSS Chatbot",
         "language": "Sprache",
-        "english": "English",
-        "arabic": "العربية",
-        "german": "Deutsch",
         "chat_history": "Chatverlauf",
-        "new_chat": "Neuer Chat",
-        "clear_history": "Verlauf löschen",
+        "new_chat": "➕ Neuer Chat",
+        "delete": "🗑️ Löschen",
+        "clear_history": "🗑️ Alles löschen",
+        "no_history": "Keine Gespräche",
+        "error": "Fehler bei der Kommunikation mit dem Modell",
+        "welcome": "Willkommen! Starten Sie ein neues Gespräch.",
         "placeholder": "Geben Sie Ihre Nachricht hier ein...",
-        "send": "Senden",
-        "no_history": "Noch kein Chatverlauf",
-        "model": "Modell: GPT-OSS 20B",
-        "copy": "Kopieren",
-        "delete": "Löschen",
         "settings": "⚙️ Einstellungen",
-        "about": "ℹ️ Über",
-        "temperature": "Temperatur",
-        "max_tokens": "Maximale Token",
+        "confirmation": "Sind Sie sicher?",
+        "conv_deleted": "Gespräch gelöscht"
     }
 }
 
-def get_text(key, lang):
-    """Get translated text"""
-    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+# Initialize session state
+if "language" not in st.session_state:
+    st.session_state.language = "English"
+if "conversations" not in st.session_state:
+    st.session_state.conversations = {}
+if "current_conv_id" not in st.session_state:
+    st.session_state.current_conv_id = None
 
-def initialize_session_state():
-    """Initialize session state variables"""
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    if "history" not in st.session_state:
-        st.session_state.history = []
-    if "language" not in st.session_state:
-        st.session_state.language = "en"
+# Get current translations
+t = TRANSLATIONS[st.session_state.language]
 
-def apply_theme():
-    """Apply dark theme to Streamlit"""
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: #0e1117;
-        color: #c9d1d9;
-    }
-    .stSidebar {
-        background-color: #010409 !important;
-        color: #c9d1d9 !important;
-    }
-    [data-testid="stSidebar"] * {
-        color: #c9d1d9 !important;
-    }
-    [data-testid="stSidebar"] h1, 
-    [data-testid="stSidebar"] h2, 
-    [data-testid="stSidebar"] h3, 
-    [data-testid="stSidebar"] h4, 
-    [data-testid="stSidebar"] h5, 
-    [data-testid="stSidebar"] h6 {
-        color: #c9d1d9 !important;
-    }
-    .stChatMessage {
-        background-color: #161b22;
-        color: #c9d1d9;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# Streamlit page config
+st.set_page_config(
+    page_title="HF GPT-OSS Chatbot",
+    page_icon="🤖",
+    layout="wide"
+)
 
-def stream_response(messages):
-    """Stream response from the model using conversational endpoint"""
-    try:
-        headers = {"Authorization": f"Bearer {hftoken}"}
-        
-        # Use HuggingFace conversational API endpoint with GPT-OSS 20B
-        api_url = "https://api-inference.huggingface.co/models/openai/gpt-oss-20b"
-        
-        payload = {
-            "inputs": {
-                "past_user_inputs": [msg["content"] for msg in messages[:-1] if msg["role"] == "user"],
-                "generated_responses": [msg["content"] for msg in messages[:-1] if msg["role"] == "assistant"],
-                "text": messages[-1]["content"] if messages[-1]["role"] == "user" else ""
-            }
-        }
-        
-        response_text = ""
-        
-        # Make request to conversational endpoint
-        response = requests.post(api_url, headers=headers, json=payload, stream=True)
-        response.raise_for_status()
-        
-        for line in response.iter_lines():
-            if line:
-                data = json.loads(line)
-                if "generated_text" in data:
-                    chunk = data["generated_text"]
-                    response_text += chunk
-                    yield chunk
-        
-        return response_text
-    except Exception as e:
-        error_msg = f"Error: {str(e)}"
-        yield error_msg
-
-def save_to_history():
-    """Save entire conversation to history"""
-    if not st.session_state.messages:
-        return
-    
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    # Extract keywords from first user message for naming
-    first_user_msg = next((m["content"] for m in st.session_state.messages if m["role"] == "user"), "Conversation")
-    keywords = extract_keywords(first_user_msg)
-    chat_name = keywords if keywords else first_user_msg[:30]
-    
-    chat_entry = {
-        "timestamp": timestamp,
-        "name": chat_name,
-        "messages": st.session_state.messages.copy()  # Store entire conversation
+def create_new_conversation():
+    """Create a new conversation"""
+    conv_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    st.session_state.conversations[conv_id] = {
+        "title": "New Chat",
+        "created": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "messages": []
     }
-    st.session_state.history.append(chat_entry)
+    st.session_state.current_conv_id = conv_id
+    st.rerun()
 
-def extract_keywords(text):
-    """Extract keywords from text for naming conversations"""
-    # Common words to exclude
-    stop_words = {"the", "a", "an", "is", "are", "was", "were", "be", "been", "been", 
-                  "what", "how", "why", "tell", "me", "please", "can", "could", "would"}
+def generate_title_from_message(message):
+    """Generate a keyword title from a message"""
+    # Common words to skip
+    skip_words = {'what', 'how', 'can', 'do', 'is', 'the', 'a', 'an', 'to', 'for', 'of', 'and', 'or', 'in', 'on', 'at', 'by', 'with', 'from', 'about', 'if', 'that', 'be', 'are', 'am', 'was', 'were', 'been', 'being'}
     
-    words = text.lower().split()
-    keywords = [w.strip(".,!?;:") for w in words if len(w) > 3 and w.lower() not in stop_words]
+    # Extract words from message
+    words = message.strip().lower().split()
     
-    if keywords:
-        return " ".join(keywords[:3])
-    return text[:20]
+    # Find first meaningful word (not in skip list)
+    for word in words:
+        # Remove punctuation
+        clean_word = word.strip('.,!?;:')
+        if clean_word and clean_word not in skip_words and len(clean_word) > 2:
+            return clean_word.capitalize()
+    
+    # Fallback: return first word if nothing else found
+    return words[0].capitalize() if words else "Chat"
 
-def main():
-    """Main Streamlit app"""
-    initialize_session_state()
+def delete_conversation(conv_id):
+    """Delete a conversation"""
+    if conv_id in st.session_state.conversations:
+        del st.session_state.conversations[conv_id]
+        if st.session_state.current_conv_id == conv_id:
+            st.session_state.current_conv_id = None
+        st.rerun()
+
+def get_current_conversation():
+    """Get current conversation messages"""
+    if st.session_state.current_conv_id and st.session_state.current_conv_id in st.session_state.conversations:
+        return st.session_state.conversations[st.session_state.current_conv_id]["messages"]
+    return []
+
+def save_message_to_conversation(role, content):
+    """Save message to current conversation"""
+    if st.session_state.current_conv_id:
+        conv = st.session_state.conversations[st.session_state.current_conv_id]
+        
+        # Update title from first user message
+        if role == "user" and conv["title"] == "New Chat":
+            conv["title"] = generate_title_from_message(content)
+        
+        conv["messages"].append({
+            "role": role,
+            "content": content
+        })
+
+# Sidebar
+with st.sidebar:
+    st.title(t["settings"])
     
-    # Configure page
-    st.set_page_config(
-        page_title="GPT-OSS Chatbot",
-        page_icon="🤖",
-        layout="wide",
-        initial_sidebar_state="expanded"
+    # Language selector with callback
+    selected_language = st.selectbox(
+        t["language"],
+        ["English", "Arabic", "Deutsch"],
+        index=["English", "Arabic", "Deutsch"].index(st.session_state.language),
+        key="language_select"
     )
+    if selected_language != st.session_state.language:
+        st.session_state.language = selected_language
+        st.rerun()
     
-    # Sidebar configuration
-    with st.sidebar:
-        st.header(get_text("settings", st.session_state.language))
-        
-        lang = st.session_state.language
-        
-        # Language selection
-        lang_options = {"English": "en", "العربية": "ar", "Deutsch": "de"}
-        selected_lang = st.selectbox(
-            get_text("language", lang),
-            options=lang_options.keys(),
-            index=["en", "ar", "de"].index(st.session_state.language),
-            key="lang_select"
-        )
-        if lang_options[selected_lang] != st.session_state.language:
-            st.session_state.language = lang_options[selected_lang]
-            st.rerun()
-        
-        st.divider()
-        
-        # Additional Options
-        st.subheader("🎛️ Advanced Options")
-        
-        if "temperature" not in st.session_state:
-            st.session_state.temperature = 0.7
-        if "max_tokens" not in st.session_state:
-            st.session_state.max_tokens = 512
-        
-        temp = st.slider(
-            get_text("temperature", lang),
-            min_value=0.0,
-            max_value=2.0,
-            value=st.session_state.temperature,
-            step=0.1,
-            help="Higher values = more creative, Lower values = more focused"
-        )
-        st.session_state.temperature = temp
-        
-        tokens = st.number_input(
-            get_text("max_tokens", lang),
-            min_value=1,
-            max_value=2048,
-            value=st.session_state.max_tokens,
-            step=100,
-            help="Maximum number of tokens in response"
-        )
-        st.session_state.max_tokens = tokens
-        
-        st.divider()
-        
-        # Chat History
-        lang = st.session_state.language
-        st.subheader(get_text("chat_history", lang))
-        
-        if st.button(get_text("new_chat", lang), use_container_width=True):
-            # Auto-save current chat before starting new one
-            if st.session_state.messages:
-                save_to_history()
-            st.session_state.messages = []
-            st.rerun()
-        
-        if st.button(get_text("clear_history", lang), use_container_width=True):
-            st.session_state.history = []
-            st.rerun()
-        
-        st.divider()
-        
-        # Display history with full conversations
-        if st.session_state.history:
-            st.subheader("📋 Recent Chats")
-            for i, chat in enumerate(reversed(st.session_state.history[-5:])):
-                chat_name = chat.get("name", f"Chat {i+1}")
-                with st.expander(f"💬 {chat_name}", expanded=False):
-                    # Display full conversation
-                    messages = chat.get("messages", [])
-                    for msg in messages:
-                        role = msg["role"]
-                        content = msg["content"]
-                        if role == "user":
-                            st.markdown(f"**👤:** {content}")
-                        else:
-                            st.markdown(f"**🤖:** {content}")
-                    
-                    # Load conversation button
-                    if st.button(f"Load this chat", key=f"load_{i}_{chat['timestamp']}", use_container_width=True):
-                        st.session_state.messages = messages
-                        st.rerun()
-                    
-                    st.caption(f"⏰ {chat['timestamp']}")
-        else:
-            st.info(get_text("no_history", lang))
-        
-        st.divider()
-        st.markdown("---")
-        st.subheader(get_text("about", lang))
-        st.markdown(f"**{get_text('model', lang)}**")
-        st.caption("Built with Streamlit & HuggingFace")
+    st.divider()
     
-    # Apply dark theme
-    apply_theme()
+    # New Chat Button
+    if st.button(f"✨ {t['new_chat']}", use_container_width=True, key="new_chat_btn"):
+        create_new_conversation()
     
-    # Main content
-    lang = st.session_state.language
-    st.title(get_text("title", lang))
-    st.caption(get_text("subtitle", lang))
+    st.divider()
     
-    # Display messages
-    for message in st.session_state.messages:
+    # Chat History
+    st.subheader(f"📜 {t['chat_history']}")
+    
+    if st.session_state.conversations:
+        for conv_id, conv_data in st.session_state.conversations.items():
+            col1, col2 = st.columns([0.85, 0.15])
+            
+            with col1:
+                if st.button(
+                    f"💬 {conv_data['title']}\n📝 {len(conv_data['messages'])} msgs",
+                    key=f"conv_{conv_id}",
+                    use_container_width=True
+                ):
+                    st.session_state.current_conv_id = conv_id
+                    st.rerun()
+            
+            with col2:
+                if st.button("✕", key=f"del_{conv_id}", use_container_width=True):
+                    delete_conversation(conv_id)
+    else:
+        st.info(t["no_history"])
+    
+    st.divider()
+    
+    # Clear all history
+    if st.button(f"🗑️ {t['clear_history']}", use_container_width=True):
+        st.session_state.conversations = {}
+        st.session_state.current_conv_id = None
+        st.rerun()
+
+# Main content
+st.title(t["title"])
+
+# Create first conversation if none exists
+if not st.session_state.conversations:
+    create_new_conversation()
+
+if st.session_state.current_conv_id:
+    # Get current conversation
+    current_messages = get_current_conversation()
+    
+    if not current_messages:
+        st.info(t["welcome"])
+    
+    # Display chat messages
+    for message in current_messages:
         with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            st.write(message["content"])
     
     # Chat input
-    if prompt := st.chat_input(get_text("placeholder", lang)):
+    if prompt := st.chat_input(t["placeholder"]):
         # Add user message
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        save_message_to_conversation("user", prompt)
+        
+        # Display user message
         with st.chat_message("user"):
-            st.markdown(prompt)
+            st.write(prompt)
         
-        # Prepare messages for API
-        api_messages = [{"role": m["role"], "content": m["content"]} 
-                        for m in st.session_state.messages]
-        
-        # Stream response
+        # Generate and stream response
         with st.chat_message("assistant"):
-            message_placeholder = st.empty()
-            full_response = ""
-            
-            for chunk in stream_response(api_messages):
-                full_response += chunk
-                message_placeholder.markdown(full_response + "▌")
-            
-            message_placeholder.markdown(full_response)
-        
-        # Add assistant message
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
-
-if __name__ == "__main__":
-    main()
+            try:
+                # Get all messages for API call
+                all_messages = get_current_conversation()
+                
+                # Create streaming response
+                response_placeholder = st.empty()
+                full_response = ""
+                
+                # Stream from the model
+                stream = client.chat.completions.create(
+                    model="openai/gpt-oss-120b:groq",
+                    messages=all_messages,
+                    stream=True,
+                )
+                
+                # Collect streamed text
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        full_response += chunk.choices[0].delta.content
+                        response_placeholder.write(full_response)
+                
+                # Save assistant message
+                save_message_to_conversation("assistant", full_response)
+                
+            except Exception as e:
+                error_msg = f"{t['error']}: {str(e)}"
+                st.error(error_msg)
+                save_message_to_conversation("assistant", error_msg)
